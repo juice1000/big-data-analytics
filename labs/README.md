@@ -188,3 +188,8 @@ For technical support during the workshop:
 ---
 
 **Happy Learning! 🎓**
+
+## Dataset
+
+We use this dataset:
+https://www.kaggle.com/datasets/computingvictor/transactions-fraud-datasets?resource=download&select=transactions_data.csv

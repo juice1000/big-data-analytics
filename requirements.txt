@@ -3,6 +3,7 @@
 pyspark==3.5.3
 findspark==2.0.1
 
+
 # Data Processing and Analysis
 pandas==2.2.2
 numpy==2.0.1
@@ -38,11 +39,13 @@ openpyxl==3.1.5
 tqdm==4.66.4
 
 # Statistics and Math
-scipy==1.14.0
-statsmodels==0.14.2
+scipy>=1.14.0,<1.15
+statsmodels>=0.14.2,<0.15
 
 # Time series
-datetime
+# datetime (built-in, no need to install)
+
+# databricks-connect==16.4.3
 
 # Optional: Cloud integrations (commented out for local development)
 # google-cloud-storage==2.18.0
