@@ -1,0 +1,50 @@
+# Big Data Analytics Workshop Requirements
+# Core Big Data Processing
+pyspark==3.5.3
+findspark==2.0.1
+
+# Data Processing and Analysis
+pandas==2.2.2
+numpy==2.0.1
+pyarrow==17.0.0
+
+# Visualization
+matplotlib==3.9.2
+seaborn==0.13.2
+plotly==5.24.1
+
+# Machine Learning
+scikit-learn==1.5.1
+
+# Jupyter and Development
+jupyter==1.1.1
+notebook==7.2.2
+ipython==8.26.0
+ipywidgets==8.1.5
+
+# Data Generation and Faker
+faker==26.0.0
+random-word==1.0.11
+
+# API and Web Scraping
+requests==2.32.3
+beautifulsoup4==4.12.3
+lxml==5.2.2
+
+# File Handling
+openpyxl==3.1.5
+
+# Progress bars and utilities
+tqdm==4.66.4
+
+# Statistics and Math
+scipy==1.14.0
+statsmodels==0.14.2
+
+# Time series
+datetime
+
+# Optional: Cloud integrations (commented out for local development)
+# google-cloud-storage==2.18.0
+# google-cloud-bigquery==3.25.0
+# boto3==1.34.158
