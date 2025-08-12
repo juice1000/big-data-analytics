@@ -1,7 +1,7 @@
 from typing import Tuple
 
+from db.storage import get_session
 from sqlmodel import text
-from storage import get_session
 
 
 # Very simple amount-based deviation check using client's history

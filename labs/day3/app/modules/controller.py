@@ -1,7 +1,7 @@
-from evaluator import evaluate_text
-from models import Decision, Transaction
-from storage import insert_transaction
-from whitelist import amount_is_unusual
+from db.models import Decision, Transaction
+from db.storage import insert_transaction
+from modules.evaluator import evaluate_text
+from modules.whitelist import amount_is_unusual
 
 
 def process_transaction_logic(tx: Transaction) -> Decision:

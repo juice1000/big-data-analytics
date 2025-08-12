@@ -3,11 +3,10 @@ import sqlite3
 from os.path import abspath, dirname, exists, join
 from typing import Any, Mapping, Union
 
-from models import Transaction
+from db.models import Transaction
 from sqlmodel import Session, SQLModel, create_engine
 
 DB_PATH = abspath(join(dirname(__file__), "..", "data", "transactions.db"))
-print(f"Database path: {DB_PATH}")
 if not exists(dirname(DB_PATH)):
     os.makedirs(dirname(DB_PATH), exist_ok=True)
 ENGINE = create_engine(f"sqlite:///{DB_PATH}", echo=False)

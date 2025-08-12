@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
 
-from controller import process_transaction_logic
+from db.models import Decision, Transaction
+from db.storage import init_db, reset_database
 from fastapi import FastAPI
-from models import Decision, Transaction
-from storage import init_db, reset_database
+from modules.controller import process_transaction_logic
 
 
 @asynccontextmanager
