@@ -19,6 +19,7 @@ class Transaction(SQLModel, table=True):
     merchant_state: Optional[str] = None
     zip: Optional[str] = None
     mcc: Optional[int] = None
+    description: Optional[str] = None
     errors: Optional[str] = None
     flagged_fraud: Optional[bool] = None
     is_fraud: Optional[bool] = None

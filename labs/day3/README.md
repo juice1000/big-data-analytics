@@ -53,7 +53,8 @@ curl -X POST http://127.0.0.1:8080/transaction \
     "merchant_state": "CA",
     "zip": "94105",
     "mcc": 6011,
-    "errors": "URGENT VERIFY ACCOUNT EXPIRES TODAY",
+    "description": "URGENT VERIFY ACCOUNT EXPIRES TODAY",
+    "errors"
     "flagged_fraud": null,
     "is_fraud": null
   }'
