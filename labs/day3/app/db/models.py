@@ -28,4 +28,3 @@ class Transaction(SQLModel, table=True):
 class Decision(BaseModel):
     suspicious: bool
     reason: str
-    score: float

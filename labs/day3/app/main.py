@@ -2,8 +2,12 @@ from contextlib import asynccontextmanager
 
 from db.models import Decision, Transaction
 from db.storage import init_db, reset_database
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from modules.controller import process_transaction_logic
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 @asynccontextmanager
@@ -31,5 +35,4 @@ def reset_db():
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)

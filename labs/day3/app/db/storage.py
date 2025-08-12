@@ -6,7 +6,7 @@ from typing import Any, Mapping, Union
 from db.models import Transaction
 from sqlmodel import Session, SQLModel, create_engine
 
-DB_PATH = abspath(join(dirname(__file__), "..", "data", "transactions.db"))
+DB_PATH = abspath(join(dirname(__file__), "..", "..", "data", "transactions.db"))
 if not exists(dirname(DB_PATH)):
     os.makedirs(dirname(DB_PATH), exist_ok=True)
 ENGINE = create_engine(f"sqlite:///{DB_PATH}", echo=False)
@@ -19,6 +19,7 @@ def get_conn():
 def init_db():
     if not exists(dirname(DB_PATH)):
         os.makedirs(dirname(DB_PATH), exist_ok=True)
+    print(f"Creating database directory at {dirname(DB_PATH)}")
     SQLModel.metadata.create_all(ENGINE)
 
 
@@ -38,7 +39,8 @@ def insert_transaction(tx: Union[Transaction, Mapping[str, Any]]) -> int:
 
 def reset_database():
     """Delete and recreate the database schema."""
+    ENGINE.dispose()
     if exists(DB_PATH):
         print(f"Removing existing database at {DB_PATH}")
         os.remove(DB_PATH)
-        init_db()
+    init_db()
