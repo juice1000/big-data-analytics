@@ -1,14 +1,18 @@
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from sqlmodel import Field, SQLModel
 
 
-class Transaction(BaseModel):
-    id: Optional[int] = Field(default=None)
+class Transaction(SQLModel, table=True):
+    __tablename__ = "transactions"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
     date: Optional[str] = None
     client_id: str
     card_id: Optional[str] = None
     amount: float
+    currency: Optional[str] = None
     use_chip: Optional[str] = None
     merchant_id: Optional[str] = None
     merchant_city: Optional[str] = None
@@ -16,11 +20,11 @@ class Transaction(BaseModel):
     zip: Optional[str] = None
     mcc: Optional[int] = None
     errors: Optional[str] = None
+    flagged_fraud: Optional[bool] = None
+    is_fraud: Optional[bool] = None
 
 
 class Decision(BaseModel):
     suspicious: bool
-    reason: str
-    score: float
     reason: str
     score: float

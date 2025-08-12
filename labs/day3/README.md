@@ -30,29 +30,32 @@ These are the components:
 
 ## Run locally
 
-- Ensure Python 3.9+
-- From repo root:
+- Ensure Python 3.12+
+- execute python script `main.py`
+
+The API starts on http://127.0.0.1:8080
+
+## Example request (schema)
 
 ```bash
-bash labs/day3/run.sh
-```
-
-The API starts on http://127.0.0.1:8000
-
-## Example request
-
-```bash
-curl -X POST http://127.0.0.1:8000/transaction \
+curl -X POST http://127.0.0.1:8080/transaction \
   -H 'Content-Type: application/json' \
   -d '{
+    "id": null,
+    "date": "2025-08-12T10:00:00Z",
     "client_id": "C123",
+    "card_id": "CARD-001",
     "amount": 999.99,
     "currency": "USD",
-    "merchant": "ACME",
+    "use_chip": "Yes",
+    "merchant_id": "ACME-001",
     "merchant_city": "ONLINE",
-    "description": "URGENT VERIFY ACCOUNT EXPIRES TODAY",
-    "latitude": 37.7749,
-    "longitude": -122.4194
+    "merchant_state": "CA",
+    "zip": "94105",
+    "mcc": 6011,
+    "errors": "URGENT VERIFY ACCOUNT EXPIRES TODAY",
+    "flagged_fraud": null,
+    "is_fraud": null
   }'
 ```
 

@@ -1,26 +1,12 @@
 import sqlite3
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Any, Mapping, Union
+
+from models import Transaction
+from sqlmodel import Session, SQLModel, create_engine
 
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "transactions.db"
-
-SCHEMA_SQL = """
-CREATE TABLE IF NOT EXISTS transactions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date TEXT,
-    client_id TEXT,
-    card_id TEXT,
-    amount REAL,
-    use_chip TEXT,
-    merchant_id TEXT,
-    merchant_city TEXT,
-    merchant_state TEXT,
-    zip TEXT,
-    mcc INTEGER,
-    errors TEXT
-);
-CREATE INDEX IF NOT EXISTS idx_client_id ON transactions(client_id);
-"""
+ENGINE = create_engine(f"sqlite:///{DB_PATH}", echo=False)
 
 
 def get_conn():
@@ -29,34 +15,19 @@ def get_conn():
 
 
 def init_db():
-    with get_conn() as conn:
-        conn.executescript(SCHEMA_SQL)
-        conn.commit()
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    SQLModel.metadata.create_all(ENGINE)
 
 
-def insert_transaction(tx: dict) -> int:
-    with get_conn() as conn:
-        cur = conn.cursor()
-        cur.execute(
-            """
-            INSERT INTO transactions (
-                date, client_id, card_id, amount, use_chip, merchant_id,
-                merchant_city, merchant_state, zip, mcc, errors
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                tx.get("date"),
-                tx.get("client_id"),
-                tx.get("card_id"),
-                tx.get("amount"),
-                tx.get("use_chip"),
-                tx.get("merchant_id"),
-                tx.get("merchant_city"),
-                tx.get("merchant_state"),
-                tx.get("zip"),
-                tx.get("mcc"),
-                tx.get("errors"),
-            ),
-        )
-        conn.commit()
-        return cur.lastrowid
+def get_session() -> Session:
+    return Session(ENGINE)
+
+
+def insert_transaction(tx: Union[Transaction, Mapping[str, Any]]) -> int:
+    if not isinstance(tx, Transaction):
+        tx = Transaction(**tx)  # type: ignore[arg-type]
+    with get_session() as session:
+        session.add(tx)
+        session.commit()
+        session.refresh(tx)
+        return tx.id or 0
