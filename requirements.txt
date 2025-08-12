@@ -42,7 +42,9 @@ tqdm==4.66.4
 scipy>=1.14.0,<1.15
 statsmodels>=0.14.2,<0.15
 
+wordcloud
 imblearn
+nltk
 
 # Time series
 # datetime (built-in, no need to install)
