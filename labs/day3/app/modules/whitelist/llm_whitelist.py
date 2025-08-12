@@ -19,8 +19,8 @@ def analyze_transaction_with_llm(description: str) -> dict:
         )
         result = response.output_text
         json_content = json.loads(result)
-        return json_content
+        return json_content.get("is_fraud", False), json_content.get("reason", "Unknown")
 
     except Exception as e:
         print("Error calling OpenAI API:", e)
-        return {"is_fraud": False, "reason": "API error"}
+        return False, "API error"
