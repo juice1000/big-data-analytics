@@ -14,7 +14,7 @@
 - Was sind die 5 V’s von Big Data?
 - Wann lohnt es sich nicht mehr, SQL zu verwenden?
 
-### Datenqualität und -bereinigung
+## Datenqualität und -bereinigung
 
 **Lernziele**
 
@@ -32,39 +32,39 @@
 - Kann man immer alle Zeilen mit undefinierten Werten löschen?
 - Kann man immer alle fehlerhafte Zeilen löschen?
 
-| supplier_id | supplier_name | amount | currency | category | transaction_date |
-| --- | --- | --- | --- | --- | --- |
-| 1003 |  |  |  | OFFICE_SUPPLIES | 2023-11-21T19:36:23.867Z |
-| 1003 | Alpha GmbH |  | eur | office supplies | 2023-11-21T19:36:23.867Z |
-| 1004 |  | 796.3 | USD | office supplies | 2025-01-24T19:36:23.867Z |
-| 1001 | Alpha GmbH |  | eur |  | 2023-02-09T19:36:23.867Z |
-| 1001 | Gamma Ltd | 145.66 | USD |  | 2023-09-22T19:36:23.867Z |
-| 1003 | Alpha GmbH |  | EUR |  | 2025-04-25T19:36:23.867Z |
-| 1001 | Alpha GmbH | 599.3 | USD | OFFICE_SUPPLIES | 2024-11-03T19:36:23.867Z |
-| 9999 |  |  | EUR | OFFICE_SUPPLIES | 2024-04-07T19:36:23.867Z |
-| 1002 | Delta S.A. | 179.68 |  | OFFICE_SUPPLIES | 2023-10-03T19:36:23.867Z |
-| 9999 | Beta AG |  | EURO | OFFICE_SUPPLIES | 2023-04-11T19:36:23.867Z |
-| 9999 | Gamma Ltd | 913 |  |  | 2025-06-29T19:36:23.867Z |
-| 1003 | Alpha GmbH |  |  | office supplies | 2024-01-31T19:36:23.867Z |
-| 1004 |  | 33.4 | EUR |  | 2024-03-11T19:36:23.867Z |
-| 1002 | Delta S.A. |  |  | OFFICE_SUPPLIES | 2024-10-25T19:36:23.867Z |
-| 1001 | Delta S.A. |  | USD | Office Supplies | 2025-05-10T19:36:23.867Z |
-| 1002 | Alpha GmbH | 772.12 | EUR | office supplies | 2024-03-30T19:36:23.867Z |
-| 1003 | Alpha GmbH |  | eur | office supplies | 2023-10-07T19:36:23.867Z |
-| 1002 | Beta AG |  | USD | office supplies | 2024-12-25T19:36:23.867Z |
-| 1001 | Gamma Ltd |  | EURO | office supplies | 2023-06-03T19:36:23.867Z |
-| 1002 | Gamma Ltd | 858.58 | EURO | OFFICE_SUPPLIES | 2024-11-10T19:36:23.867Z |
+| supplier_id | supplier_name | amount | currency | category        | transaction_date         |
+| ----------- | ------------- | ------ | -------- | --------------- | ------------------------ |
+| 1003        |               |        |          | OFFICE_SUPPLIES | 2023-11-21T19:36:23.867Z |
+| 1003        | Alpha GmbH    |        | eur      | office supplies | 2023-11-21T19:36:23.867Z |
+| 1004        |               | 796.3  | USD      | office supplies | 2025-01-24T19:36:23.867Z |
+| 1001        | Alpha GmbH    |        | eur      |                 | 2023-02-09T19:36:23.867Z |
+| 1001        | Gamma Ltd     | 145.66 | USD      |                 | 2023-09-22T19:36:23.867Z |
+| 1003        | Alpha GmbH    |        | EUR      |                 | 2025-04-25T19:36:23.867Z |
+| 1001        | Alpha GmbH    | 599.3  | USD      | OFFICE_SUPPLIES | 2024-11-03T19:36:23.867Z |
+| 9999        |               |        | EUR      | OFFICE_SUPPLIES | 2024-04-07T19:36:23.867Z |
+| 1002        | Delta S.A.    | 179.68 |          | OFFICE_SUPPLIES | 2023-10-03T19:36:23.867Z |
+| 9999        | Beta AG       |        | EURO     | OFFICE_SUPPLIES | 2023-04-11T19:36:23.867Z |
+| 9999        | Gamma Ltd     | 913    |          |                 | 2025-06-29T19:36:23.867Z |
+| 1003        | Alpha GmbH    |        |          | office supplies | 2024-01-31T19:36:23.867Z |
+| 1004        |               | 33.4   | EUR      |                 | 2024-03-11T19:36:23.867Z |
+| 1002        | Delta S.A.    |        |          | OFFICE_SUPPLIES | 2024-10-25T19:36:23.867Z |
+| 1001        | Delta S.A.    |        | USD      | Office Supplies | 2025-05-10T19:36:23.867Z |
+| 1002        | Alpha GmbH    | 772.12 | EUR      | office supplies | 2024-03-30T19:36:23.867Z |
+| 1003        | Alpha GmbH    |        | eur      | office supplies | 2023-10-07T19:36:23.867Z |
+| 1002        | Beta AG       |        | USD      | office supplies | 2024-12-25T19:36:23.867Z |
+| 1001        | Gamma Ltd     |        | EURO     | office supplies | 2023-06-03T19:36:23.867Z |
+| 1002        | Gamma Ltd     | 858.58 | EURO     | OFFICE_SUPPLIES | 2024-11-10T19:36:23.867Z |
 
 ---
 
 ### Typische Datenqualitätsprobleme (strukturierte Daten)
 
-| Problem | Beschreibung | Beispiel im Banking |
-| --- | --- | --- |
-| Fehlende Werte | Datenfelder ohne Inhalt | Geburtsdatum eines Kunden fehlt |
-| Outlier | Extremwerte außerhalb normaler Range | Überweisung von 1 Mio. € von Privatkonto |
-| Duplikate | Gleicher Kunde mehrfach erfasst | „Max Müller“ und „M. Mueller“ als getrennte Einträge |
-| Inkonsistenz | Unterschiedliche Formate oder Schreibweisen | „GER“, „Deutschland“, „DE“ |
+| Problem        | Beschreibung                                | Beispiel im Banking                                  |
+| -------------- | ------------------------------------------- | ---------------------------------------------------- |
+| Fehlende Werte | Datenfelder ohne Inhalt                     | Geburtsdatum eines Kunden fehlt                      |
+| Outlier        | Extremwerte außerhalb normaler Range        | Überweisung von 1 Mio. € von Privatkonto             |
+| Duplikate      | Gleicher Kunde mehrfach erfasst             | „Max Müller“ und „M. Mueller“ als getrennte Einträge |
+| Inkonsistenz   | Unterschiedliche Formate oder Schreibweisen | „GER“, „Deutschland“, „DE“                           |
 
 ---
 
@@ -84,8 +84,8 @@ Bsp.: “The quick brown fox jumps over the lazy dog”
 - Falscher Dateityp
 - Falscher/ defekter Dateiaufbau
 - Informationen unsauber
-    - Viel unbrauchbare Information
-    - Daten korrupt
+  - Viel unbrauchbare Information
+  - Daten korrupt
 - Leere Dateien
 
 ### Datenbereinigungstechniken
@@ -129,7 +129,7 @@ Bsp.: “The quick brown fox jumps over the lazy dog”
 ```python
 [ <JSON> Datei ]
     ↓
-[ Datei verarbeitbar ] → Löschen / In Archiv zur Korrektur vorlegen / Code Cleaner 
+[ Datei verarbeitbar ] → Löschen / In Archiv zur Korrektur vorlegen / Code Cleaner
     ↓
 [ Wichtige Keys prüfen ] → Logs schreiben / Weiterverarbeitung entscheiden
     ↓
@@ -327,10 +327,10 @@ Binäre Klassifikation (Fraud / kein Fraud)
 ![image.png](Tag%202%20ML%20algorithms%20+%20Unstructured%20data%20processing%2024a7a614759580cfaaf2ed5d071082c4/7157e307-1bf2-47e9-b355-74e84eaeccb5.png)
 
 - **Modellbewertung**
-    - **MSE (Mean Squared Error)** – mittlerer quadratischer Fehler, stark empfindlich gegenüber Ausreißern.
-    - **RMSE (Root Mean Squared Error)** – Quadratwurzel von MSE, gleiche Einheit wie Zielvariable.
-    - **MAE (Mean Absolute Error)** – mittlerer absoluter Fehler, robuster gegen Ausreißer.
-    - **R² (Bestimmtheitsmaß)** – erklärt, wie viel Varianz im Ziel durch das Modell erklärt wird (1 = perfekt, 0 = nichts erklärt).
+  - **MSE (Mean Squared Error)** – mittlerer quadratischer Fehler, stark empfindlich gegenüber Ausreißern.
+  - **RMSE (Root Mean Squared Error)** – Quadratwurzel von MSE, gleiche Einheit wie Zielvariable.
+  - **MAE (Mean Absolute Error)** – mittlerer absoluter Fehler, robuster gegen Ausreißer.
+  - **R² (Bestimmtheitsmaß)** – erklärt, wie viel Varianz im Ziel durch das Modell erklärt wird (1 = perfekt, 0 = nichts erklärt).
 
 ---
 
@@ -380,103 +380,73 @@ Binäre Klassifikation (Fraud / kein Fraud)
 ### 1. Text Data Processing
 
 - **Kundenkommunikation analysieren**
-    
-    Verarbeitung und Auswertung von E-Mails, Chatlogs und Social-Media-Nachrichten, um Kundenbedürfnisse und -anliegen besser zu verstehen.
-    
-    Beispiele:
-    
-    - Automatische Klassifizierung von Anfragen (z. B. Support, Beschwerde, Feedback)
-    - Erkennung von wiederkehrenden Themen und Problemen
-    - Priorisierung dringender Kundenanliegen
+  Verarbeitung und Auswertung von E-Mails, Chatlogs und Social-Media-Nachrichten, um Kundenbedürfnisse und -anliegen besser zu verstehen.
+  Beispiele:
+  - Automatische Klassifizierung von Anfragen (z. B. Support, Beschwerde, Feedback)
+  - Erkennung von wiederkehrenden Themen und Problemen
+  - Priorisierung dringender Kundenanliegen
 - **Transaktionsbeschreibungen durchsuchen**
-    
-    Extraktion relevanter Informationen aus Freitextfeldern in Konto- oder Zahlungsinformationen.
-    
-    Beispiele:
-    
-    - Zuordnung von Transaktionen zu Kategorien (Miete, Einkauf, Reisen)
-    - Identifizierung von Händlern und Zahlungsplattformen
-    - Erkennung untypischer Beschreibungen als Hinweis auf Betrug
+  Extraktion relevanter Informationen aus Freitextfeldern in Konto- oder Zahlungsinformationen.
+  Beispiele:
+  - Zuordnung von Transaktionen zu Kategorien (Miete, Einkauf, Reisen)
+  - Identifizierung von Händlern und Zahlungsplattformen
+  - Erkennung untypischer Beschreibungen als Hinweis auf Betrug
 - **Sentiment Analysis für Kundenstimmung**
-    
-    Erkennung der Stimmungslage in Kundenfeedback oder Supportgesprächen.
-    
-    Beispiele:
-    
-    - Positiv/neutral/negativ-Klassifizierung
-    - Trends im Zeitverlauf verfolgen, um Kampagnenerfolg oder Servicequalität zu messen
-    - Automatische Eskalation bei negativem Feedback
+  Erkennung der Stimmungslage in Kundenfeedback oder Supportgesprächen.
+  Beispiele:
+  - Positiv/neutral/negativ-Klassifizierung
+  - Trends im Zeitverlauf verfolgen, um Kampagnenerfolg oder Servicequalität zu messen
+  - Automatische Eskalation bei negativem Feedback
 
 ---
 
 ### 2. Document Processing
 
 - **PDFs parsen (Verträge, Kontoauszüge)**
-    
-    Extraktion strukturierter Daten aus unstrukturierten Dokumenten.
-    
-    Beispiele:
-    
-    - Automatische Extraktion von Vertragsdetails wie Laufzeit, Gebühren, Kündigungsfristen
-    - Verarbeitung von Kontoauszügen zur Transaktionsanalyse
-    - Validierung von Dokumentinhalten gegen interne Systeme
+  Extraktion strukturierter Daten aus unstrukturierten Dokumenten.
+  Beispiele:
+  - Automatische Extraktion von Vertragsdetails wie Laufzeit, Gebühren, Kündigungsfristen
+  - Verarbeitung von Kontoauszügen zur Transaktionsanalyse
+  - Validierung von Dokumentinhalten gegen interne Systeme
 - **E-Mail-Analyse für Supportoptimierung**
-    
-    Strukturierung und Auswertung von E-Mail-Inhalten zur Effizienzsteigerung im Kundenservice.
-    
-    Beispiele:
-    
-    - Erkennung und Tagging von Standardanfragen
-    - Automatisierte Antwortvorschläge für häufige Fragen
-    - Analyse von Bearbeitungszeiten und Antwortqualität
+  Strukturierung und Auswertung von E-Mail-Inhalten zur Effizienzsteigerung im Kundenservice.
+  Beispiele:
+  - Erkennung und Tagging von Standardanfragen
+  - Automatisierte Antwortvorschläge für häufige Fragen
+  - Analyse von Bearbeitungszeiten und Antwortqualität
 
 ### 3. Image Processing
 
 - **Bilder vorverarbeiten (Fotos, Scans)**
-    
-    Vorbereitung von Bilddaten zur Verbesserung der Qualität und Extraktion relevanter Informationen.
-    
-    Beispiele:
-    
-    - Rauschreduzierung und Schärfung für bessere Erkennungsergebnisse
-    - Zuschneiden und Skalieren auf einheitliche Formate
-    - Farbanpassung und Kontrastoptimierung für konsistente Bildqualität
+  Vorbereitung von Bilddaten zur Verbesserung der Qualität und Extraktion relevanter Informationen.
+  Beispiele:
+  - Rauschreduzierung und Schärfung für bessere Erkennungsergebnisse
+  - Zuschneiden und Skalieren auf einheitliche Formate
+  - Farbanpassung und Kontrastoptimierung für konsistente Bildqualität
 - **Objekterkennung und Segmentierung**
-    
-    Identifizierung und Abgrenzung relevanter Objekte innerhalb eines Bildes.
-    
-    Beispiele:
-    
-    - Erkennung von Produkten in Lagerfotos zur Bestandskontrolle
-    - Segmentierung von medizinischen Aufnahmen zur Analyse bestimmter Gewebearten
-    - Zählen und Klassifizieren von Objekten in Produktionslinien
+  Identifizierung und Abgrenzung relevanter Objekte innerhalb eines Bildes.
+  Beispiele:
+  - Erkennung von Produkten in Lagerfotos zur Bestandskontrolle
+  - Segmentierung von medizinischen Aufnahmen zur Analyse bestimmter Gewebearten
+  - Zählen und Klassifizieren von Objekten in Produktionslinien
 - **Texterkennung (OCR)**
-    
-    Automatische Erfassung von Textinhalten aus Bildern.
-    
-    Beispiele:
-    
-    - Extraktion von Text aus eingescannten Formularen
-    - Erkennung von Beschriftungen und Nummernschildern
-    - Digitalisierung handschriftlicher Notizen
+  Automatische Erfassung von Textinhalten aus Bildern.
+  Beispiele:
+  - Extraktion von Text aus eingescannten Formularen
+  - Erkennung von Beschriftungen und Nummernschildern
+  - Digitalisierung handschriftlicher Notizen
 - **Bildklassifikation**
-    
-    Automatisierte Zuordnung von Bildern zu vordefinierten Kategorien.
-    
-    Beispiele:
-    
-    - Sortieren von Produktbildern in E-Commerce-Kataloge
-    - Erkennen von defekten Produkten in der Qualitätskontrolle
-    - Einordnung von Satellitenbildern nach Landnutzung
+  Automatisierte Zuordnung von Bildern zu vordefinierten Kategorien.
+  Beispiele:
+  - Sortieren von Produktbildern in E-Commerce-Kataloge
+  - Erkennen von defekten Produkten in der Qualitätskontrolle
+  - Einordnung von Satellitenbildern nach Landnutzung
 - **Visuelle Ähnlichkeitssuche**
-    
-    Finden ähnlicher Bilder in großen Datenbeständen.
-    
-    Beispiele:
-    
-    - Identifizieren von Plagiaten in Bilddatenbanken
-    - Empfehlung ähnlicher Produkte im Onlinehandel
-    - Erkennen von Duplikaten oder Varianten eines Bildes
+  Finden ähnlicher Bilder in großen Datenbeständen.
+  Beispiele:
+  - Identifizieren von Plagiaten in Bilddatenbanken
+  - Empfehlung ähnlicher Produkte im Onlinehandel
+  - Erkennen von Duplikaten oder Varianten eines Bildes
 
 ---
 
