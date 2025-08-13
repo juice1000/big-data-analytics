@@ -44,6 +44,10 @@ SQLITE_DB = os.getenv(
     "TX_SQLITE_DB",
     "/Users/julienlook/Documents/Coding/big-data-analytics/labs/day3/data/transactions.db",
 )
+CLUSTER_DB = os.getenv(
+    "TX_CLUSTER_DB",
+    "/Users/julienlook/Documents/Coding/big-data-analytics/labs/day3/data/transactions_clusters.db",
+)
 TX_JSON_PATH = os.getenv(
     "TX_JSON_PATH",
     "/Users/julienlook/Documents/Coding/big-data-analytics/labs/data/train_fraud_labels.json",
@@ -65,17 +69,15 @@ def transactions_ingest():
     def clean() -> None:
         ensure_dirs()
         run_clean(CSV_PATH, SQLITE_DB)
-
-    # @task
-    # def cluster() -> None:
-    #     run_cluster(SQLITE_DB)
-
     @task
     def join() -> None:
         run_join(SQLITE_DB, TX_JSON_PATH)
 
-    # clean() >> cluster() >> join()
-    clean() >> join()
+    @task
+    def cluster() -> None:
+        run_cluster(SQLITE_DB, CLUSTER_DB)
+
+    clean() >> join() >> cluster()
 
 
 dag = transactions_ingest()

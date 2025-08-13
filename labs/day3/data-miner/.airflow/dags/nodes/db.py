@@ -78,6 +78,7 @@ def write_df(engine, table: str, df) -> None:
 
 
 def read_sql_pdf(engine, query: str) -> pd.DataFrame:
-	"""Read SQL into pandas using the given engine."""
-	with engine.connect() as conn:
-		return pd.read_sql_query(text(query), conn)
+	"""Read SQL into pandas using the given engine.
+	Use a plain SQL string and the SQLAlchemy engine to keep pandas on the SQLAlchemy code path.
+	"""
+	return pd.read_sql_query(query, engine)
