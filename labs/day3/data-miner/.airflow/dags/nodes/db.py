@@ -1,11 +1,15 @@
-from typing import Iterable
+"""DB helpers for task nodes (minimal, task-local abstraction).
+
+Why not reuse API layer models? Keeping the Airflow side decoupled avoids tight
+coupling / import path gymnastics; tasks only need lightweight batch insert + ensure schema.
+"""
 
 import pandas as pd
 from sqlalchemy import text
 from sqlmodel import create_engine
 
 
-DB_COLUMNS: list[str] = [
+DB_COLUMNS: list[str] = [  # Canonical order for SELECT/INSERT alignment
 	"id",
 	"date",
 	"client_id",
@@ -26,7 +30,7 @@ DB_COLUMNS: list[str] = [
 
 
 def get_engine(db_path: str):
-	"""Create a SQLModel/SQLAlchemy engine for the SQLite DB."""
+	"""Create a SQLAlchemy engine for given SQLite file path."""
 	return create_engine(f"sqlite:///{db_path}")
 
 
@@ -58,7 +62,11 @@ def ensure_transactions_table(engine) -> None:
 
 
 def write_df(engine, table: str, df) -> None:
-	"""Batch-insert a Spark DataFrame using SQLAlchemy text parameters."""
+	"""Batch UPSERT Spark DataFrame rows into SQLite.
+
+	Performs manual batching (size=500) to reduce transaction overhead.
+	Uses SQLite ON CONFLICT(id) to update existing rows in place.
+	"""
 	cols = df.columns
 	col_list = ",".join(cols)
 	placeholders = ",".join([f":{c}" for c in cols])
@@ -82,7 +90,5 @@ def write_df(engine, table: str, df) -> None:
 
 
 def read_sql_pdf(engine, query: str) -> pd.DataFrame:
-	"""Read SQL into pandas using the given engine.
-	Use a plain SQL string and the SQLAlchemy engine to keep pandas on the SQLAlchemy code path.
-	"""
+	"""Run arbitrary SELECT and return pandas DataFrame (debug / ad-hoc use)."""
 	return pd.read_sql_query(query, engine)

@@ -1,6 +1,6 @@
 # Data Miner – Airflow + PySpark pipeline
 
-Small batch ETL orchestrated by Apache Airflow (standalone mode) to support Day 3:
+Small batch ETL orchestrated by Apache Airflow (standalone mode) to support Day 3
 
 | Task    | Purpose                                                                                |
 | ------- | -------------------------------------------------------------------------------------- |
@@ -9,6 +9,24 @@ Small batch ETL orchestrated by Apache Airflow (standalone mode) to support Day 
 | cluster | Feature engineer per client + KMeans (k=3), write counts to `transactions_clusters.db` |
 
 Airflow UI runs at: http://127.0.0.1:8080
+
+## What is Airflow?
+
+Apache Airflow lets you define data workflows as Python DAGs (tasks + dependencies) and then schedule, run, and observe them. In this lab we run the standalone bundle (scheduler + web UI + local SQLite metadata) inside the repo for zero setup.
+
+Essentials:
+
+- DAG: Python-defined graph (no cycles). Each execution = DAG Run.
+- Task: @task function here (TaskFlow API) run by the executor.
+- Scheduler + Executor: decide order then run tasks locally; logs visible in the UI.
+- Metadata DB (SQLite): stores run & task state; easy to inspect / reset.
+- Web UI: enable/trigger DAG, watch logs, see durations.
+
+Our flow: launch `./run_airflow.sh` → enable `transactions_ingest` → tasks run in order: clean → join → cluster. We skip XCom; tasks pass data via the SQLite tables. Standalone + SQLite keeps it lightweight; you can later add a schedule, retries, alerts, or swap SQLite for Postgres and scale the executor.
+
+Why Airflow (brief): declarative dependencies, visibility, easy scheduling, incremental growth beyond shell scripts.
+
+Grow later: add model training/scoring tasks, parameterize k, introduce retries/SLAs, move metadata DB out of repo.
 
 ## Quick start
 
@@ -36,6 +54,8 @@ Set in `.env` (auto‑loaded by the script) or your shell:
 - `TX_CSV_PATH` – input CSV (defaults to `labs/day3/data/transactions_data.csv` if present)
 - `TX_SQLITE_DB` – path to main SQLite DB (e.g. `labs/day3/data/transactions.db`)
 - `TX_LABELS_JSON` – JSON labels file for `join` task
+- `TX_JSON_PATH` - Path for the JSON file fraud_labels.json
+- `TX_CLUSTER_DB` - path for the cluster SQlite DB
 
 If unset, tasks attempt sensible defaults relative to the repo.
 

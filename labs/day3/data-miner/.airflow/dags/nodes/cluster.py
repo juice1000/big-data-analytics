@@ -1,6 +1,16 @@
-"""
-Cluster step: build customer-level features and run KMeans clustering with scaling.
-Writes cluster distribution to SQLite table 'transactions_clusters'.
+"""Task node: CLUSTER
+
+Pipeline:
+    1. Read needed columns from 'transactions' (SQLite) into Spark DataFrame.
+    2. Aggregate per client (sums, averages, counts, diversity, online ratio).
+    3. Assemble feature vector, scale, run KMeans (k=3) in a Spark ML pipeline.
+    4. Compute distribution (cluster id -> row count) and persist to 'transactions_clusters'.
+
+Rationale:
+    - Feature engineering kept intentionally small for clarity; can expand as needed.
+    - Online ratio computed defensively dividing by max(1, transaction_count).
+    - Using StandardScaler ensures differing scales (spend vs ratios) do not bias clustering.
+    - Whole distribution table is overwritten each run (non append) for simplicity.
 """
 
 import sqlite3
@@ -20,7 +30,7 @@ def run_cluster(sqlite_db_path: str, cluster_db_path: str) -> None:
         # Load transactions with necessary columns
         df = _read_transactions(spark, sqlite_db_path)
 
-        # Build customer-level features
+    # Build customer-level feature aggregates.
         print("Preparing customer features for clustering...")
         grouped = (
             df.groupBy("client_id")
@@ -45,7 +55,7 @@ def run_cluster(sqlite_db_path: str, cluster_db_path: str) -> None:
             "merchant_diversity",
         ]
 
-        # Defensive fill for missing columns
+    # Defensive fill for any missing feature columns (future schema changes).
         for c in feature_cols:
             if c not in customer_features.columns:
                 customer_features = customer_features.withColumn(c, F.lit(0.0))
@@ -54,7 +64,7 @@ def run_cluster(sqlite_db_path: str, cluster_db_path: str) -> None:
 
         customer_features_clean = customer_features.select("client_id", *feature_cols).na.fill(0.0)
 
-        # ML Pipeline: assemble -> scale -> kmeans
+    # ML Pipeline stages: raw numeric cols -> vector -> scaled -> KMeans.
         assembler = VectorAssembler(inputCols=feature_cols, outputCol="features")
         scaler = StandardScaler(inputCol="features", outputCol="scaledFeatures")
         kmeans = KMeans(featuresCol="scaledFeatures", k=3, seed=42) # We can also tune the number of clusters using the elbow method
@@ -65,7 +75,7 @@ def run_cluster(sqlite_db_path: str, cluster_db_path: str) -> None:
         predictions = model.transform(customer_features_clean)
         print("K-means clustering completed!")
 
-        # Cluster distribution
+    # Cluster distribution (count of customers per cluster id).
         out = predictions.groupBy("prediction").count().orderBy("prediction").withColumnRenamed("prediction", "cluster")
         out = out.select("cluster", "count")
         _write_clusters_to_sqlite(out, cluster_db_path)
