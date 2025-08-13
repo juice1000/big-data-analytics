@@ -208,7 +208,10 @@ __marimo__/
 
 
 # Data and Models
-**/data/**
+**/data/*.db
+**/data/*.sqlite
+**/data/*.csv
+**/data/*.json
 **/models/**
 
 # Airflow
