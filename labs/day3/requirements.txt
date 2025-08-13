@@ -5,3 +5,5 @@ streamlit
 sqlmodel
 openai
 python-dotenv
+apache-airflow
+pyspark

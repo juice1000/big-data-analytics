@@ -69,3 +69,29 @@ Response:
   "score": 0.9
 }
 ```
+
+### TODO:
+
+- alert if we have something up
+- clustering with spark
+- original database to check
+
+## Airflow data-miner (barebones)
+
+Files in `labs/day3/data-miner/`:
+
+- `load.py`, `preprocess.py`, `save.py`: three minimal PySpark steps
+- `dag_transactions_ingest.py`: Airflow DAG wiring load → preprocess → save
+
+Defaults (override via env):
+
+- TX_CSV_PATH=/Users/julienlook/Documents/Coding/big-data-analytics/labs/data/transactions_data.csv
+- TX_SQLITE_DB=/Users/julienlook/Documents/Coding/big-data-analytics/labs/day3/data/transactions.db
+- TX_WORK_DIR=./\_work
+
+Run the DAG in Airflow (example):
+
+1. Install requirements in a virtualenv
+2. Set AIRFLOW_HOME and initialize Airflow
+3. Point the dags_folder to this repository or copy the DAG file under your dags folder
+4. Trigger `transactions_ingest`
