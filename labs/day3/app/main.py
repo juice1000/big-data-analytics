@@ -22,7 +22,6 @@ from modules.controller import process_transaction_logic
 # can access secrets such as OPENAI_API_KEY via os.getenv without manual export.
 load_dotenv()
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan hook.

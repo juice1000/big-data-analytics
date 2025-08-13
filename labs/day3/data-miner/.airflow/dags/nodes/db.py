@@ -62,7 +62,11 @@ def write_df(engine, table: str, df) -> None:
 	cols = df.columns
 	col_list = ",".join(cols)
 	placeholders = ",".join([f":{c}" for c in cols])
-	insert_sql = text(f"INSERT INTO {table} ({col_list}) VALUES ({placeholders})")
+	# UPSERT: if primary key 'id' exists, update remaining columns.
+	update_assignments = ",".join([f"{c}=excluded.{c}" for c in cols if c != "id"])
+	insert_sql = text(
+		f"INSERT INTO {table} ({col_list}) VALUES ({placeholders}) ON CONFLICT(id) DO UPDATE SET {update_assignments}"
+	)
 	with engine.begin() as conn:
 		batch = []
 		batch_size = 500

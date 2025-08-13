@@ -8,10 +8,9 @@ def amount_is_unusual(client_id: str, amount: float, factor: float = 3.0) -> boo
         # We compute average amount and count for this client. LIMIT keeps the scan bounded.
         # Note: ORDER BY doesn't affect aggregation but is harmless here.
         result = session.exec(
-            text(
-                "SELECT AVG(amount) as avg_amt, COUNT(*) as cnt FROM transactions "
-                "WHERE client_id = :cid ORDER BY date DESC LIMIT 10000"
-            ).params(cid=client_id)
+            text("SELECT AVG(amount) as avg_amt, COUNT(*) as cnt FROM transactions WHERE client_id = :cid ORDER BY date DESC LIMIT 10000").params(
+                cid=client_id
+            )
         )
 
         row = result.first()
