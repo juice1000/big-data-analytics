@@ -207,6 +207,14 @@ marimo/_lsp/
 __marimo__/
 
 
+# Data and Models
 **/data/**
 **/models/**
+
+# Airflow
 .airflow-venv
+airflow.db
+airflow.cfg
+airflow.db.journal
+standalone_admin_password.txt
+airflow-webserver.pid
