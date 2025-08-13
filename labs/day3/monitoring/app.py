@@ -1,14 +1,15 @@
 import os
-import sqlite3
 import pandas as pd
+from sqlalchemy import text
+from sqlmodel import create_engine
 
 import streamlit as st
 
 # Always work relative to this script's directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join("..", "data", "transactions.db")
+CLUSTERS_DB_PATH = os.path.join("..", "data", "transactions_clusters.db")
 
-# TODO: rewrite for SQLModel
 
 def evaluate_text(description: str | None) -> float:
     """Very small keyword-based score for potential fraud (0.0 to 1.0)."""
@@ -24,10 +25,15 @@ def evaluate_text(description: str | None) -> float:
     return 0.0
 
 
-def get_connection():
+def get_engine():
     if not os.path.exists(DB_PATH):
         return None
-    return sqlite3.connect(DB_PATH)
+    return create_engine(f"sqlite:///{DB_PATH}")
+
+def get_clusters_engine():
+    if not os.path.exists(CLUSTERS_DB_PATH):
+        return None
+    return create_engine(f"sqlite:///{CLUSTERS_DB_PATH}")
 
 
 st.set_page_config(page_title="Transaction Monitoring", layout="wide")
@@ -35,28 +41,24 @@ st.title("Transaction Monitoring")
 
 
 def load_metrics():
-    conn = get_connection()
-    if conn is None:
+    engine = get_engine()
+    if engine is None:
         return None
     try:
-        with conn:
-            cur = conn.cursor()
-            cur.execute("SELECT COUNT(*) FROM transactions")
-            total_tx = int(cur.fetchone()[0] or 0)
+        with engine.connect() as conn:
+            total_tx = int((conn.execute(text("SELECT COUNT(*) FROM transactions"))).fetchone()[0] or 0)
             if total_tx == 0:
                 return {"total_tx": 0, "total_amount": 0.0, "potential_fraud": 0, "is_fraud_count": 0}
 
-            cur.execute("SELECT COALESCE(SUM(amount), 0) FROM transactions")
-            total_amount = float(cur.fetchone()[0] or 0.0)
+            total_amount = float((conn.execute(text("SELECT COALESCE(SUM(amount), 0) FROM transactions"))).fetchone()[0] or 0.0)
 
             # Prefer flagged_fraud if present; fall back to keyword score on errors
             potential_fraud = 0
             try:
-                cur.execute("SELECT COUNT(*) FROM transactions WHERE flagged_fraud = 1")
-                potential_fraud = int(cur.fetchone()[0] or 0)
+                potential_fraud = int((conn.execute(text("SELECT COUNT(*) FROM transactions WHERE flagged_fraud = 1"))).fetchone()[0] or 0)
             except Exception:
-                cur.execute("SELECT errors FROM transactions")
-                for (err_text,) in cur.fetchall():
+                rows = conn.execute(text("SELECT errors FROM transactions")).fetchall()
+                for (err_text,) in rows:
                     score = evaluate_text(err_text)
                     if score >= 0.6:
                         potential_fraud += 1
@@ -64,8 +66,7 @@ def load_metrics():
             # Count of labeled frauds (is_fraud == 1), if column exists
             is_fraud_count = 0
             try:
-                cur.execute("SELECT COUNT(*) FROM transactions WHERE is_fraud = 1")
-                is_fraud_count = int(cur.fetchone()[0] or 0)
+                is_fraud_count = int((conn.execute(text("SELECT COUNT(*) FROM transactions WHERE is_fraud = 1"))).fetchone()[0] or 0)
             except Exception:
                 is_fraud_count = None
             return {
@@ -92,32 +93,27 @@ else:
 
     # Recent transactions table (20 rows)
     def load_recent_transactions(limit: int = 20, only_flagged: bool = False, only_is_fraud: bool = False):
-        conn = get_connection()
-        if conn is None:
+        engine = get_engine()
+        if engine is None:
             return None
+        base = (
+            "SELECT id, date, client_id, card_id, amount, currency, "
+            "merchant_city, mcc, description, flagged_fraud, is_fraud "
+            "FROM transactions"
+        )
+        where_clauses = []
+        if only_flagged:
+            where_clauses.append("flagged_fraud = 1")
+        if only_is_fraud:
+            where_clauses.append("is_fraud = 1")
+        if where_clauses:
+            base += " WHERE " + " AND ".join(where_clauses)
+        query = base + " ORDER BY id DESC LIMIT ?"
         try:
-            with conn:
-                base = (
-                    "SELECT id, date, client_id, card_id, amount, currency, "
-                    "merchant_city, mcc, description, flagged_fraud, is_fraud "
-                    "FROM transactions"
-                )
-                where_clauses = []
-                if only_flagged:
-                    where_clauses.append("flagged_fraud = 1")
-                if only_is_fraud:
-                    where_clauses.append("is_fraud = 1")
-                if where_clauses:
-                    base += " WHERE " + " AND ".join(where_clauses)
-                query = base + " ORDER BY id DESC LIMIT ?"
-                return pd.read_sql_query(query, conn, params=(limit,))
+            return pd.read_sql_query(query, engine, params=(limit,))
         except Exception:
-            # Fallback: try without WHERE and filter in pandas if possible
             try:
-                with conn:
-                    df = pd.read_sql_query(
-                        base + " ORDER BY id DESC LIMIT ?", conn, params=(limit,)
-                    )
+                df = pd.read_sql_query(base + " ORDER BY id DESC LIMIT ?", engine, params=(limit,))
                 if only_flagged and "flagged_fraud" in df.columns:
                     ser_f = df["flagged_fraud"].fillna(0)
                     try:
@@ -144,3 +140,21 @@ else:
         st.write("No recent transactions to display.")
     else:
         st.dataframe(recent_df, use_container_width=True, height=400)
+
+    # Clusters table from transactions_clusters.db
+    st.subheader("Clusters (transactions_clusters.db)")
+    clusters_engine = get_clusters_engine()
+    if clusters_engine is None:
+        st.write("No clusters database found yet.")
+    else:
+        try:
+            clusters_df = pd.read_sql_query(
+                "SELECT * FROM transactions_clusters ORDER BY cluster ASC",
+                clusters_engine,
+            )
+            if clusters_df.empty:
+                st.write("No cluster data to display.")
+            else:
+                st.dataframe(clusters_df, use_container_width=True, height=300)
+        except Exception as e:
+            st.write(f"Failed to read clusters table: {e}")
