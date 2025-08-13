@@ -8,12 +8,9 @@ def process_transaction_logic(tx: Transaction) -> Decision:
 
     suspicious, reason = evaluate_transaction(tx)
     decision = Decision(suspicious=suspicious, reason=reason)
-
     # If caller didn't provide flagged_fraud, set from decision
-    # tx.flagged_fraud = suspicious
+    tx.flagged_fraud = suspicious
 
     # Persist the transaction
-    # insert_transaction(tx)
-    
-
+    insert_transaction(tx)
     return decision

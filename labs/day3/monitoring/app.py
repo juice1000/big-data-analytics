@@ -8,6 +8,7 @@ import streamlit as st
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join("..", "data", "transactions.db")
 
+# TODO: rewrite for SQLModel
 
 def evaluate_text(description: str | None) -> float:
     """Very small keyword-based score for potential fraud (0.0 to 1.0)."""
@@ -43,7 +44,7 @@ def load_metrics():
             cur.execute("SELECT COUNT(*) FROM transactions")
             total_tx = int(cur.fetchone()[0] or 0)
             if total_tx == 0:
-                return {"total_tx": 0, "total_amount": 0.0, "potential_fraud": 0}
+                return {"total_tx": 0, "total_amount": 0.0, "potential_fraud": 0, "is_fraud_count": 0}
 
             cur.execute("SELECT COALESCE(SUM(amount), 0) FROM transactions")
             total_amount = float(cur.fetchone()[0] or 0.0)
@@ -59,10 +60,19 @@ def load_metrics():
                     score = evaluate_text(err_text)
                     if score >= 0.6:
                         potential_fraud += 1
+
+            # Count of labeled frauds (is_fraud == 1), if column exists
+            is_fraud_count = 0
+            try:
+                cur.execute("SELECT COUNT(*) FROM transactions WHERE is_fraud = 1")
+                is_fraud_count = int(cur.fetchone()[0] or 0)
+            except Exception:
+                is_fraud_count = None
             return {
                 "total_tx": total_tx,
                 "total_amount": total_amount,
                 "potential_fraud": potential_fraud,
+                "is_fraud_count": is_fraud_count,
             }
     except Exception:
         # If table doesn't exist yet or any other issue, treat as no data
@@ -73,14 +83,15 @@ data = load_metrics()
 if not data or data["total_tx"] == 0:
     st.info("No data available yet. The dashboard will populate as transactions arrive.")
 else:
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     col1.metric("Transactions", f"{data['total_tx']:,}")
     col2.metric("Total Amount", f"{data['total_amount']:,.2f}")
     col3.metric("Potential Fraud", f"{data['potential_fraud']:,}")
-    st.caption("Potential fraud is estimated using a simple keyword check on the 'errors' text.")
+    col4.metric("Is Fraud", "N/A" if data.get("is_fraud_count") is None else f"{data['is_fraud_count']:,}")
+    st.caption("Potential fraud uses flagged_fraud when available, else a simple keyword check. 'Is Fraud' reflects labeled ground truth if loaded.")
 
     # Recent transactions table (20 rows)
-    def load_recent_transactions(limit: int = 20, only_fraud: bool = False):
+    def load_recent_transactions(limit: int = 20, only_flagged: bool = False, only_is_fraud: bool = False):
         conn = get_connection()
         if conn is None:
             return None
@@ -91,8 +102,13 @@ else:
                     "merchant_city, mcc, description, flagged_fraud, is_fraud "
                     "FROM transactions"
                 )
-                if only_fraud:
-                    base += " WHERE is_fraud = 1"
+                where_clauses = []
+                if only_flagged:
+                    where_clauses.append("flagged_fraud = 1")
+                if only_is_fraud:
+                    where_clauses.append("is_fraud = 1")
+                if where_clauses:
+                    base += " WHERE " + " AND ".join(where_clauses)
                 query = base + " ORDER BY id DESC LIMIT ?"
                 return pd.read_sql_query(query, conn, params=(limit,))
         except Exception:
@@ -102,19 +118,27 @@ else:
                     df = pd.read_sql_query(
                         base + " ORDER BY id DESC LIMIT ?", conn, params=(limit,)
                     )
-                if only_fraud and "is_fraud" in df.columns:
-                    ser = df["is_fraud"].fillna(0)
+                if only_flagged and "flagged_fraud" in df.columns:
+                    ser_f = df["flagged_fraud"].fillna(0)
                     try:
-                        ser = ser.astype(int)
+                        ser_f = ser_f.astype(int)
                     except Exception:
-                        ser = ser.apply(lambda x: 1 if str(x).lower() in ("true", "1") else 0)
-                    df = df[ser == 1]
+                        ser_f = ser_f.apply(lambda x: 1 if str(x).lower() in ("true", "1") else 0)
+                    df = df[ser_f == 1]
+                if only_is_fraud and "is_fraud" in df.columns:
+                    ser_i = df["is_fraud"].fillna(0)
+                    try:
+                        ser_i = ser_i.astype(int)
+                    except Exception:
+                        ser_i = ser_i.apply(lambda x: 1 if str(x).lower() in ("true", "1") else 0)
+                    df = df[ser_i == 1]
                 return df
             except Exception:
                 return None
 
-    only_fraud = st.checkbox("Show only is_fraud = 1", value=False)
-    recent_df = load_recent_transactions(20, only_fraud=only_fraud)
+    only_flagged = st.checkbox("Show only flagged_fraud = 1", value=False)
+    only_is_fraud = st.checkbox("Show only is_fraud = 1", value=False)
+    recent_df = load_recent_transactions(20, only_flagged=only_flagged, only_is_fraud=only_is_fraud)
     st.subheader("Recent transactions (latest 20)")
     if recent_df is None or recent_df.empty:
         st.write("No recent transactions to display.")
