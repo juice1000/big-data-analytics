@@ -14,6 +14,8 @@ def get_spark(app_name: str = "transactions_loader") -> SparkSession:
 	return (
 		SparkSession.builder.appName(app_name)
 		.config("spark.ui.showConsoleProgress", "false")
+		.config("spark.driver.host", "127.0.0.1")  # Force localhost binding to avoid network issues
+		.config("spark.driver.bindAddress", "127.0.0.1")  # Explicit bind address for driver
 		.getOrCreate()
 	)
 

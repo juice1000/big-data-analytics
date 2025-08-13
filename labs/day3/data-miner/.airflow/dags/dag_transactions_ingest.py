@@ -28,9 +28,9 @@ def _load_function(module_filename: str, func_name: str):
     spec.loader.exec_module(mod)
     return getattr(mod, func_name)
 
-run_clean = _load_function("../nodes/clean.py", "run_clean")
-run_cluster = _load_function("../nodes/cluster.py", "run_cluster")
-run_join = _load_function("../nodes/join.py", "run_join")
+run_clean = _load_function("nodes/clean.py", "run_clean")
+run_cluster = _load_function("nodes/cluster.py", "run_cluster")
+run_join = _load_function("nodes/join.py", "run_join")
 
 
 
@@ -43,6 +43,10 @@ CSV_PATH = os.getenv(
 SQLITE_DB = os.getenv(
     "TX_SQLITE_DB",
     "/Users/julienlook/Documents/Coding/big-data-analytics/labs/day3/data/transactions.db",
+)
+TX_JSON_PATH = os.getenv(
+    "TX_JSON_PATH",
+    "/Users/julienlook/Documents/Coding/big-data-analytics/labs/data/train_fraud_labels.json",
 )
 
 
@@ -66,12 +70,12 @@ def transactions_ingest():
     # def cluster() -> None:
     #     run_cluster(SQLITE_DB)
 
-    # @task
-    # def join() -> None:
-    #     run_join(SQLITE_DB)
+    @task
+    def join() -> None:
+        run_join(SQLITE_DB, TX_JSON_PATH)
 
     # clean() >> cluster() >> join()
-    clean()
+    clean() >> join()
 
 
 dag = transactions_ingest()

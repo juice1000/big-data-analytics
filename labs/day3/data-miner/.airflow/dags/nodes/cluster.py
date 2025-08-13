@@ -1,15 +1,15 @@
 """
-Cluster step: read from SQLite 'transactions' into Spark, perform a simple clustering (KMeans) on amount,
-write the clustered assignments back to SQLite table 'transactions_clusters'.
+Cluster step: read from SQLite 'transactions' via SQLModel engine, perform simple KMeans on amount,
+write the cluster counts back to SQLite table 'transactions_clusters'.
 
 Focus: minimal and robust.
 """
-import sqlite3
 
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.feature import VectorAssembler
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
+from nodes.db import get_engine, read_sql_pdf
 
 
 def get_spark(app_name: str = "tx_cluster") -> SparkSession:
@@ -42,14 +42,8 @@ def run_cluster(sqlite_db_path: str, k: int = 3) -> None:
 
 
 def _read_transactions(spark: SparkSession, db_path: str):
-    # Cheap and cheerful: use sqlite3 -> pandas -> spark to avoid JDBC jar
-    import pandas as pd
-
-    conn = sqlite3.connect(db_path)
-    try:
-        pdf = pd.read_sql_query("SELECT amount FROM transactions WHERE amount IS NOT NULL", conn)
-    finally:
-        conn.close()
+    engine = get_engine(db_path)
+    pdf = read_sql_pdf(engine, "SELECT amount FROM transactions WHERE amount IS NOT NULL")
     return spark.createDataFrame(pdf)
 
 

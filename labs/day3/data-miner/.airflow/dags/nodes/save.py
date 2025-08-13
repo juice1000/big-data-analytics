@@ -24,30 +24,6 @@ def _jdbc_available() -> bool:
 	return bool(os.environ.get("SPARK_CLASSPATH"))
 
 
-def save_parquet_to_sqlite(curated_parquet_path: str, sqlite_db_path: str, table: str = "transactions") -> None:
-	spark = get_spark()
-	try:
-		df = spark.read.parquet(curated_parquet_path)
-
-		if _jdbc_available():
-			url = f"jdbc:sqlite:{sqlite_db_path}"
-			(
-				df.write.mode("append")
-				.format("jdbc")
-				.option("url", url)
-				.option("dbtable", table)
-				.save()
-			)
-			return
-
-		# Fallback: collect in batches and insert via sqlite3
-		cols = df.columns
-		rows = df.toLocalIterator()  # stream rows
-		_insert_rows_sqlite(sqlite_db_path, table, cols, rows)
-	finally:
-		spark.stop()
-
-
 def _insert_rows_sqlite(db_path: str, table: str, cols: list[str], rows: Iterable) -> None:
 	placeholders = ",".join(["?"] * len(cols))
 	col_list = ",".join(cols)

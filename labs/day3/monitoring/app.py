@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from pathlib import Path
+import pandas as pd
 
 import streamlit as st
 
@@ -78,3 +78,45 @@ else:
     col2.metric("Total Amount", f"{data['total_amount']:,.2f}")
     col3.metric("Potential Fraud", f"{data['potential_fraud']:,}")
     st.caption("Potential fraud is estimated using a simple keyword check on the 'errors' text.")
+
+    # Recent transactions table (20 rows)
+    def load_recent_transactions(limit: int = 20, only_fraud: bool = False):
+        conn = get_connection()
+        if conn is None:
+            return None
+        try:
+            with conn:
+                base = (
+                    "SELECT id, date, client_id, card_id, amount, currency, "
+                    "merchant_city, mcc, description, flagged_fraud, is_fraud "
+                    "FROM transactions"
+                )
+                if only_fraud:
+                    base += " WHERE is_fraud = 1"
+                query = base + " ORDER BY id DESC LIMIT ?"
+                return pd.read_sql_query(query, conn, params=(limit,))
+        except Exception:
+            # Fallback: try without WHERE and filter in pandas if possible
+            try:
+                with conn:
+                    df = pd.read_sql_query(
+                        base + " ORDER BY id DESC LIMIT ?", conn, params=(limit,)
+                    )
+                if only_fraud and "is_fraud" in df.columns:
+                    ser = df["is_fraud"].fillna(0)
+                    try:
+                        ser = ser.astype(int)
+                    except Exception:
+                        ser = ser.apply(lambda x: 1 if str(x).lower() in ("true", "1") else 0)
+                    df = df[ser == 1]
+                return df
+            except Exception:
+                return None
+
+    only_fraud = st.checkbox("Show only is_fraud = 1", value=False)
+    recent_df = load_recent_transactions(20, only_fraud=only_fraud)
+    st.subheader("Recent transactions (latest 20)")
+    if recent_df is None or recent_df.empty:
+        st.write("No recent transactions to display.")
+    else:
+        st.dataframe(recent_df, use_container_width=True, height=400)

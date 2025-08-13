@@ -1,2 +1,4 @@
 pyspark
-airflow==2.9.3
+pandas
+sqlmodel
+apache-airflow==2.9.3
