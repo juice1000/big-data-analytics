@@ -1,117 +1,55 @@
 # Data Miner – Airflow + PySpark pipeline
 
-This folder contains the batch orchestration for Day 3. It runs a small ETL with PySpark under Airflow:
+Small batch ETL orchestrated by Apache Airflow (standalone mode) to support Day 3:
 
-- clean: read CSV, normalize columns, write to SQLite `transactions.db`
-- cluster: engineer per-customer features, run KMeans (k=3) with scaling, write counts to `transactions_clusters.db`
-- join: load JSON labels and update `transactions.is_fraud`
+| Task    | Purpose                                                                                |
+| ------- | -------------------------------------------------------------------------------------- |
+| clean   | Read CSV, normalize schema, insert / upsert rows into `transactions.db`                |
+| join    | Load JSON labels, bulk update `transactions.is_fraud`                                  |
+| cluster | Feature engineer per client + KMeans (k=3), write counts to `transactions_clusters.db` |
 
-## 1) Environment setup
+Airflow UI runs at: http://127.0.0.1:8080
 
-Use a dedicated virtualenv for Airflow (Python 3.12):
+## Quick start
 
 ```bash
 cd labs/day3/data-miner
-python3 -m venv .airflow-venv
-source .airflow-venv/bin/activate
-pip install -r requirements.txt
+python3 -m venv .airflow-venv          # create isolated env just for Airflow & Spark deps
+source .airflow-venv/bin/activate      # activate it (needed every new shell)
+pip install -r requirements.txt        # install orchestrator + PySpark deps
+./run_airflow.sh                       # sets AIRFLOW_HOME locally and launches standalone
 ```
 
-Initialize Airflow in a local folder inside this project:
+Then open the web UI above, enable the `transactions_ingest` DAG, and trigger it.
 
-```bash
-export AIRFLOW_HOME="$PWD/.airflow"
-mkdir -p "$AIRFLOW_HOME/dags"
-airflow db migrate
-airflow info | grep -E 'AIRFLOW_HOME|dags_folder'
-```
+## Why this flow?
 
-Place/point DAGs:
+- Separate virtualenv: keeps heavier Airflow/Spark pins out of the rest of the project.
+- Local `AIRFLOW_HOME`: all metadata DB, logs, and DAGs stay inside the repo (`.airflow/`). Easy cleanup.
+- Single launcher (`run_airflow.sh`): removes manual export steps; guarantees DAGs live where the scheduler scans.
+- Simplicity: minimal moving parts for a learning lab (no external metastore / executor).
 
-- The DAG files live under `.airflow/dags` in this repo. Ensure Airflow sees that folder (output of the `airflow info` command above).
+## Configuration (optional overrides)
 
-Start Airflow (webserver + scheduler in one):
+Set in `.env` (auto‑loaded by the script) or your shell:
 
-```bash
-airflow standalone
-```
+- `TX_CSV_PATH` – input CSV (defaults to `labs/day3/data/transactions_data.csv` if present)
+- `TX_SQLITE_DB` – path to main SQLite DB (e.g. `labs/day3/data/transactions.db`)
+- `TX_LABELS_JSON` – JSON labels file for `join` task
 
-Airflow UI: http://127.0.0.1:8080
+If unset, tasks attempt sensible defaults relative to the repo.
 
-## 2) Configuration
+## Outputs
 
-Key environment variables (set in your shell or `.env` files as needed):
+- `labs/day3/data/transactions.db` – table `transactions`
+- `labs/day3/data/transactions_clusters.db` – table `transactions_clusters` (cluster, count)
 
-- TX_CSV_PATH – input CSV file path (default points to labs/day3/data/transactions_data.csv if present)
-- TX_SQLITE_DB – main DB (e.g., `labs/day3/data/transactions.db`)
-- TX_LABELS_JSON – labels JSON path for the join step (e.g., `labs/day3/labs/data/train_fraud_labels.json`)
+Inspect via SQLite client or the monitoring Streamlit app in `labs/day3/monitoring`.
 
-The code uses `os.path` only; ensure the `labs/day3/data` directory exists and is writable.
+## Troubleshooting (trimmed)
 
-## 3) Pipeline details
+- DAG missing: confirm `.airflow/dags` contains the DAG files; restart script.
+- Spark import error: ensure `pyspark` installed in the activated `.airflow-venv`.
+- SQLite lock: re‑run with fewer parallel tasks; standalone mode usually avoids heavy contention.
 
-- clean task
-
-  - Reads CSV with Spark
-  - Cleans/casts amount, ensures schema columns, sets id to NULL to auto-increment in SQLite
-  - Writes to `transactions` in `transactions.db` (via SQLModel engine)
-
-- cluster task
-
-  - Reads required columns from `transactions`
-  - Aggregates features per client: total_spend, avg_transaction_amount, transaction_count, online_ratio, merchant_diversity
-  - Assembles + scales features and runs KMeans (k=3, seed=42)
-  - Writes distribution counts to `transactions_clusters` in `transactions_clusters.db`
-
-- join task
-  - Reads labels JSON and maps Yes/No → 1/0
-  - Performs bulk UPDATE on `transactions.is_fraud` WHERE id matches
-
-## 4) Run the DAG
-
-In the Airflow UI, enable and trigger the `transactions_ingest` DAG.
-
-Or via CLI:
-
-```bash
-airflow dags list
-airflow dags trigger transactions_ingest
-```
-
-## 5) Outputs and verification
-
-- labs/day3/data/transactions.db
-
-  - Table: transactions
-  - Verify row count and sums via Streamlit or sqlite browser
-
-- labs/day3/data/transactions_clusters.db
-  - Table: transactions_clusters (cluster, count)
-
-Airflow task logs (for debugging):
-
-```bash
-ls -1 .airflow/logs/dag_id=transactions_ingest/
-```
-
-## 6) Troubleshooting
-
-- DAG not visible:
-
-  - Confirm `AIRFLOW_HOME` and `dags_folder` point to this repo’s `.airflow/dags`
-  - Restart `airflow standalone`
-
-- Import errors during DAG parse:
-
-  - We defer heavy imports to task execution time; ensure Python path finds `.airflow/dags/nodes`
-
-- SQLite lock/timeouts:
-
-  - Re-run with fewer concurrent tasks; ensure no other process is writing while Airflow writes
-
-- Pandas/SQLAlchemy errors:
-
-  - We use SQLAlchemy engine + plain string queries; avoid passing `text(query)` directly to pandas
-
-- Spark not found:
-  - Ensure pyspark installed in `.airflow-venv` and available in PATH from that venv
+Everything else: check task logs in `.airflow/logs/` from the UI or filesystem.
