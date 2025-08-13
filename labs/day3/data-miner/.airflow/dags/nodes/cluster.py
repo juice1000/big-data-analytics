@@ -14,7 +14,7 @@ from nodes.db import get_engine
 from nodes.run_spark import get_spark
 
 
-def run_cluster(sqlite_db_path: str, cluster_db_path: str, k: int = 3) -> None:
+def run_cluster(sqlite_db_path: str, cluster_db_path: str) -> None:
     spark = get_spark()
     try:
         # Load transactions with necessary columns
@@ -57,7 +57,7 @@ def run_cluster(sqlite_db_path: str, cluster_db_path: str, k: int = 3) -> None:
         # ML Pipeline: assemble -> scale -> kmeans
         assembler = VectorAssembler(inputCols=feature_cols, outputCol="features")
         scaler = StandardScaler(inputCol="features", outputCol="scaledFeatures")
-        kmeans = KMeans(featuresCol="scaledFeatures", k=k, seed=42)
+        kmeans = KMeans(featuresCol="scaledFeatures", k=3, seed=42) # We can also tune the number of clusters using the elbow method
         pipeline = Pipeline(stages=[assembler, scaler, kmeans])
 
         print("Training K-means model...")

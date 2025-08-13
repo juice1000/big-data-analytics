@@ -5,7 +5,7 @@ from sqlmodel import text
 def amount_is_unusual(client_id: str, amount: float, factor: float = 3.0) -> bool | None:
     with get_session() as session:
         result = session.exec(
-            text("SELECT AVG(amount) as avg_amt, COUNT(*) as cnt FROM transactions WHERE client_id = :cid").params(
+            text("SELECT AVG(amount) as avg_amt, COUNT(*) as cnt FROM transactions WHERE client_id = :cid ORDER BY date DESC LIMIT 10000").params(
                 cid=client_id
             )
         )

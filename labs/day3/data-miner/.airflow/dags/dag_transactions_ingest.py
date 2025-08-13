@@ -36,24 +36,13 @@ run_join = _load_function("nodes/join.py", "run_join")
 
 
 # Inputs (override via env)
-CSV_PATH = os.getenv(
-    "TX_CSV_PATH",
-    "/Users/julienlook/Documents/Coding/big-data-analytics/labs/data/transactions_data.csv",
-)
-SQLITE_DB = os.getenv(
-    "TX_SQLITE_DB",
-    "/Users/julienlook/Documents/Coding/big-data-analytics/labs/day3/data/transactions.db",
-)
-CLUSTER_DB = os.getenv(
-    "TX_CLUSTER_DB",
-    "/Users/julienlook/Documents/Coding/big-data-analytics/labs/day3/data/transactions_clusters.db",
-)
-TX_JSON_PATH = os.getenv(
-    "TX_JSON_PATH",
-    "/Users/julienlook/Documents/Coding/big-data-analytics/labs/data/train_fraud_labels.json",
-)
+CSV_PATH = os.getenv("TX_CSV_PATH")
+SQLITE_DB = os.getenv("TX_SQLITE_DB")
+CLUSTER_DB = os.getenv("TX_CLUSTER_DB")
+TX_JSON_PATH = os.getenv("TX_JSON_PATH")
 
-
+print(f"CSV_PATH: {CSV_PATH}")
+print(f"SQLITE_DB: {SQLITE_DB}")
 def ensure_dirs() -> None:
     os.makedirs(os.path.dirname(SQLITE_DB), exist_ok=True)
 

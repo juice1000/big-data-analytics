@@ -9,13 +9,11 @@ from modules.controller import process_transaction_logic
 # Load environment variables from .env file
 load_dotenv()
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialize database on startup
     init_db()
     yield
-
 
 app = FastAPI(title="Fraud Detection API", lifespan=lifespan)
 
