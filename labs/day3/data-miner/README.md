@@ -73,3 +73,5 @@ Inspect via SQLite client or the monitoring Streamlit app in `labs/day3/monitori
 - SQLite lock: re‑run with fewer parallel tasks; standalone mode usually avoids heavy contention.
 
 Everything else: check task logs in `.airflow/logs/` from the UI or filesystem.
+
+![alt text](airflow-ui.png)
