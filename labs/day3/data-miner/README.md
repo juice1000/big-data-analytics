@@ -6,18 +6,6 @@ This folder contains the batch orchestration for Day 3. It runs a small ETL with
 - cluster: engineer per-customer features, run KMeans (k=3) with scaling, write counts to `transactions_clusters.db`
 - join: load JSON labels and update `transactions.is_fraud`
 
-## Quick init commands
-
-Copy/paste this block to initialize Airflow locally in this folder:
-
-```bash
-export AIRFLOW_HOME="$PWD/.airflow" # defines root folder for DAGs
-mkdir -p "$AIRFLOW_HOME/dags"       # DAG folder
-airflow db migrate                   # register DAGs
-airflow info | grep -E 'AIRFLOW_HOME|dags_folder' # check if DAG folder is recognised
-airflow standalone                   # start airflow server & ui
-```
-
 ## 1) Environment setup
 
 Use a dedicated virtualenv for Airflow (Python 3.12):
