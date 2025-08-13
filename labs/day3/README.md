@@ -1,97 +1,94 @@
-# Day 3 - Fraud Detection Pipeline App
+# Day 3 – End-to-end Fraud Analytics (Data Engineering Focus)
 
-We want to build a whole data processing pipeline around the topic we've had in day1 and day2: Banking Fraud detection
+This folder contains a small, realistic data engineering stack around banking fraud analytics:
 
-These are the components:
+- Ingestion and transformation (Airflow + PySpark) – clean CSVs, engineer features, cluster customers, and label transactions
+- Serving API (FastAPI + SQLModel) – accept transactions, whitelist with history, optionally call an LLM, and persist to SQLite
+- Monitoring (Streamlit) – live dashboard showing metrics, recent transactions, and cluster summary tables
 
-### API request
+All storage is local SQLite for portability:
 
-- We will do a POST request to a FastAPI endpoint /transaction which gets a transaction in JSON format
+- `data/transactions.db` – main OLTP-like store for transactions
+- `data/transactions_clusters.db` – small OLAP-like table for cluster counts
 
-### Load Data / Preprocess
+## Architecture at a glance
 
-- We will load it into a Python script and extract the data (we expect clean data)
+1. Batch: Airflow orchestrates PySpark tasks
 
-### Data Lakehouse
+- Clean: read raw CSV, minimal casting, write to `transactions`
+- Cluster: build per-customer features; KMeans with scaling; write cluster distribution to `transactions_clusters`
+- Join/Label: load JSON labels; update `transactions.is_fraud` by id
 
-- an sqlite database having past transactions
+2. Serve: FastAPI accepts POST /transaction
 
-### Whitelisting (Filtern)
+- Validates schema (Pydantic/SQLModel)
+- Heuristic whitelist against historical behavior
+- Optional LLM-based text scoring (if API key configured)
+- Persists to `transactions.db`
 
-- we will decide with past data from the same user if the transaction is unusual (geolocation and amount)
+3. Observe: Streamlit dashboard
 
-### Evaluation (ML)
+- Top-level KPIs (counts, sums, flagged vs. labeled fraud)
+- Recent transactions table with filters (flagged_fraud, is_fraud)
+- Clusters table from `transactions_clusters.db`
 
-- we will analyze the description with LLM and let it evaluate whether it's suspicious
+---
 
-### Action (Alert)
+## Quickstarts
 
-- if suspicious, we print ("alert, suspicious action")
+Prereqs
 
-## Run locally
+- Python 3.12+
+- Create and activate a venv, then install requirements
 
-- Ensure Python 3.12+
-- execute python script `main.py`
+### 1) API – FastAPI app
 
-The API starts on http://127.0.0.1:8080
+- Location: `labs/day3/app`
+- What it does: Accepts transactions, applies whitelist + simple evaluator, stores to SQLite
+- Start the API:
+  - In the `labs/day3/app` folder, run the app (uvicorn dependency assumed via requirements):
+    - uvicorn main:app --host 127.0.0.1 --port 8081 --reload
+  - Endpoint: http://127.0.0.1:8081/transaction (POST)
+- Expect: JSON response with suspicious flag, reason, score; new row in `data/transactions.db`
 
-## Example request (schema)
+Example request (schema excerpt):
 
-```bash
-curl -X POST http://127.0.0.1:8080/transaction \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "id": null,
-    "date": "2025-08-12T10:00:00Z",
-    "client_id": "C123",
-    "card_id": "CARD-001",
-    "amount": 999.99,
-    "currency": "USD",
-    "use_chip": "Yes",
-    "merchant_id": "ACME-001",
-    "merchant_city": "ONLINE",
-    "merchant_state": "CA",
-    "zip": "94105",
-    "mcc": 6011,
-    "description": "URGENT VERIFY ACCOUNT EXPIRES TODAY",
-    "errors"
-    "flagged_fraud": null,
-    "is_fraud": null
-  }'
+```
+POST /transaction { id, date, client_id, card_id, amount, currency, ..., flagged_fraud, is_fraud }
 ```
 
-Response:
+### 2) Pipeline – Airflow + PySpark
 
-```json
-{
-  "suspicious": true,
-  "reason": "multiple fraud keywords",
-  "score": 0.9
-}
-```
+- Location: `labs/day3/data-miner`
+- What it does: clean → cluster → join/label into SQLite
+- DAG: `transactions_ingest`
+- Setup (one-time):
+  - Use a dedicated venv (this folder has `.airflow-venv` example) and install `data-miner/requirements.txt`
+  - Ensure TX_CSV_PATH points to your raw CSV (e.g., `labs/day3/data/transactions_data.csv`)
+  - Ensure TX_SQLITE_DB points to `labs/day3/data/transactions.db`
+- Run:
+  - Start Airflow webserver/scheduler (or `airflow standalone`) with this repo as the dags_folder
+  - Trigger `transactions_ingest`
+- Expect:
+  - `transactions.db` populated/updated
+  - `transactions_clusters.db` holding cluster counts
 
-### TODO:
+### 3) Monitoring – Streamlit dashboard
 
-- alert if we have something up
-- clustering with spark
-- original database to check
+- Location: `labs/day3/monitoring`
+- What it does: Displays KPIs + 20-row recent table (filters for flagged_fraud/is_fraud) + all clusters table
+- Start:
+  - In the `monitoring` folder: **streamlit run app.py**
+- Expect:
+  - Metrics: total transactions, total amount, potential_fraud, is_fraud (labels)
+  - Recent transactions: paged 20 entries, filters for flagged_fraud and is_fraud
+  - Clusters table: all rows from `transactions_clusters.db`
 
-## Airflow data-miner (barebones)
+---
 
-Files in `labs/day3/data-miner/`:
+## Notes and tips
 
-- `load.py`, `preprocess.py`, `save.py`: three minimal PySpark steps
-- `dag_transactions_ingest.py`: Airflow DAG wiring load → preprocess → save
-
-Defaults (override via env):
-
-- TX_CSV_PATH=/Users/julienlook/Documents/Coding/big-data-analytics/labs/data/transactions_data.csv
-- TX_SQLITE_DB=/Users/julienlook/Documents/Coding/big-data-analytics/labs/day3/data/transactions.db
-- TX_WORK_DIR=./\_work
-
-Run the DAG in Airflow (example):
-
-1. Install requirements in a virtualenv
-2. Set AIRFLOW_HOME and initialize Airflow
-3. Point the dags_folder to this repository or copy the DAG file under your dags folder
-4. Trigger `transactions_ingest`
+- Paths: the code uses `os.path` and works relative to the app directories; ensure the `data/` folder exists
+- SQLite locks: avoid running heavy writes and reads simultaneously if you see lock timeouts; Airflow tasks serialize writes
+- LLM helper: requires `OPENAI_API_KEY` (optional); see `app/modules/whitelist/llm_whitelist.py`
+- Reset DB: the API includes a reset endpoint to drop/recreate tables in development
