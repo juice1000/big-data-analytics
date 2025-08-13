@@ -92,3 +92,5 @@ POST /transaction { id, date, client_id, card_id, amount, currency, ..., flagged
 - SQLite locks: avoid running heavy writes and reads simultaneously if you see lock timeouts; Airflow tasks serialize writes
 - LLM helper: requires `OPENAI_API_KEY` (optional); see `app/modules/whitelist/llm_whitelist.py`
 - Reset DB: the API includes a reset endpoint to drop/recreate tables in development
+
+![alt text](image.png)
