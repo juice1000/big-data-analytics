@@ -24,3 +24,4 @@ def analyze_transaction_with_llm(description: str) -> dict:
     except Exception as e:
         print("Error calling OpenAI API:", e)
         return False, "API error"
+# Todo use previous fraud tactics

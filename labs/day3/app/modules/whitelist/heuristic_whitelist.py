@@ -16,3 +16,7 @@ def amount_is_unusual(client_id: str, amount: float, factor: float = 3.0) -> boo
         avg = float(avg_amt)
         diff_ratio = abs(amount - avg) / (avg if avg else 1.0)
         return diff_ratio > factor
+
+
+
+# Todo check for client id that exists
